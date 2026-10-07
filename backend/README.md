@@ -1,8 +1,8 @@
 # notExcalidrawBackend
 
-WebSocket backend for [notExcalidraw](https://github.com/VishwajeetSinghParihar750/notExcalidraw) — handles real-time collaboration rooms, shape event sync, and live cursor presence.
+WebSocket backend for [CanvasFlow](https://github.com/bharath200415/CanvasFlow) — handles real-time collaboration rooms, shape event sync, and live cursor presence.
 
-**Frontend:** [notExcalidraw](https://github.com/VishwajeetSinghParihar750/notExcalidraw) · **Live demo:** [not-excalidraw.vercel.app](https://not-excalidraw.vercel.app)
+**Frontend:** [CanvasFlow](https://github.com/bharath200415/CanvasFlow) · **Live demo:** [CanvasFlow](https://not-excalidraw.vercel.app)
 
 ## What it does
 
@@ -118,6 +118,3 @@ Schemas are defined in `types/zodSchemas.ts` (mirrored on the frontend in `src/t
     └── playerName.ts  # Random adjective + noun name generator
 ```
 
-## Acknowledgements
-
-Built as the collaboration backend for [notExcalidraw](https://github.com/VishwajeetSinghParihar750/notExcalidraw), an Excalidraw-inspired whiteboard.
