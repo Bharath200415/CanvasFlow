@@ -9,6 +9,8 @@ import CollabPopup from "../components/home/CollabPopup";
 import type { collabState } from "../classes/feature/Collab/Collab";
 import { useNavigate } from "react-router";
 import { Toaster } from "sonner";
+import { useGrabToolPosition } from "../store/Tools.store";
+import { zoomAt } from "../utils/Zoom";
 
 type themeInfo = { name: theme; element: ReactElement };
 let themeInfoList: themeInfo[] = [
@@ -118,6 +120,11 @@ export default function Home() {
     canvasManager?.stopCurrentCollab();
   };
 
+  const zoom = useGrabToolPosition((state) => state.zoom);
+  const handleResetZoom = () => {
+    zoomAt(window.innerWidth / 2, window.innerHeight / 2, 1);
+  };
+
   //
   const currentTheme = useTheme((state) => state.currentTheme);
   const setCurrentTheme = useTheme((state) => state.setCurrentTheme);
@@ -196,6 +203,14 @@ export default function Home() {
         <div className="absolute left-5 top-24 max-sm:top-5  z-0">
           <ToolStyleMenu />
         </div>
+
+        <button
+          className="absolute left-5 bottom-5 max-sm:bottom-20 px-3 h-10 rounded-lg bg-surface hover:bg-brand text-fg text-sm font-semibold cursor-pointer shadow-lg tabular-nums"
+          onClick={handleResetZoom}
+          title="Reset zoom"
+        >
+          {Math.round(zoom * 100)}%
+        </button>
         <div className="fixed inset-0 -z-2" ref={editableTextContainer}>
           <Canvas editableTextContainer={editableTextContainer} />
         </div>

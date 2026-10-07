@@ -32,15 +32,18 @@ const useTool = create<toolState>()(
   })),
 );
 
+// screen = zoom * (canvas + {x, y}), so x / y are in canvas units
 interface grabToolPosition {
   x: number;
   y: number;
+  zoom: number;
   setPosition: (x: number, y: number) => void;
 }
 const useGrabToolPosition = create<grabToolPosition>()(
   subscribeWithSelector((set) => ({
     x: 0,
     y: 0,
+    zoom: 1,
     setPosition: (xarg, yarg) => set(() => ({ x: xarg, y: yarg })),
   })),
 );

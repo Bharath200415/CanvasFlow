@@ -15,9 +15,6 @@ export default class GrabTool implements Tool {
   shapeManager: ShapeManager;
   curState: state = "idle";
 
-  totalMovementX = 0;
-  totalMovementY = 0;
-
   lastMouseMove: Point = { x: -1e18, y: -1e18 };
   isScreenEmpty = false;
 
@@ -33,9 +30,7 @@ export default class GrabTool implements Tool {
     this.isScreenEmpty = false;
     this.lastMouseMove.x = -1e18;
     this.lastMouseMove.y = -1e18;
-    this.totalMovementX = 0;
-    this.totalMovementY = 0;
-    useGrabToolPosition.setState({ x: 0, y: 0 });
+    useGrabToolPosition.setState({ x: 0, y: 0, zoom: 1 });
 
     this.curState = "idle";
 
@@ -64,11 +59,12 @@ export default class GrabTool implements Tool {
       this.lastMouseMove.x = e.clientX;
       this.lastMouseMove.y = e.clientY;
 
-      this.totalMovementX += dx;
-      this.totalMovementY += dy;
+      // dx, dy are screen pixels, the offset is in canvas units.
+      // read the offset fresh each time since zooming also moves it
+      const { x, y, zoom } = useGrabToolPosition.getState();
       useGrabToolPosition.setState({
-        x: this.totalMovementX,
-        y: this.totalMovementY,
+        x: x + dx / zoom,
+        y: y + dy / zoom,
       });
 
       // this.updateScreenEmpty();

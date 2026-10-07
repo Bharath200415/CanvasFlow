@@ -10,6 +10,7 @@ import {
   readImageFile,
   type pastedImage,
 } from "../../utils/ImagePaste";
+import { zoomFromWheel } from "../../utils/Zoom";
 
 export default class CanvasManager {
   private shapeManager: ShapeManager = new ShapeManager();
@@ -38,6 +39,14 @@ export default class CanvasManager {
     this.toolManager.onKeyPress(e);
   };
 
+  // ctrl + wheel (and trackpad pinch, which browsers report as ctrl + wheel)
+  // zooms the canvas instead of the whole page
+  private handleWheel = (e: WheelEvent) => {
+    if (!e.ctrlKey && !e.metaKey) return;
+    e.preventDefault();
+    zoomFromWheel(e);
+  };
+
   private handlePaste = (e: ClipboardEvent) => {
     // text boxes handle their own paste
     const target = e.target as HTMLElement | null;
@@ -59,22 +68,23 @@ export default class CanvasManager {
   };
 
   private addPastedImage({ src, width, height }: pastedImage) {
-    // fit inside 60% of the viewport, centered on the pointer
+    const { x: grabShiftX, y: grabShiftY, zoom } = useGrabToolPosition.getState();
+
+    // fit inside 60% of the visible viewport, centered on the pointer
     const scale = Math.min(
       1,
-      (window.innerWidth * 0.6) / width,
-      (window.innerHeight * 0.6) / height,
+      (window.innerWidth * 0.6) / zoom / width,
+      (window.innerHeight * 0.6) / zoom / height,
     );
     const displayWidth = width * scale;
     const displayHeight = height * scale;
 
-    const { x: grabShiftX, y: grabShiftY } = useGrabToolPosition.getState();
     const center = this.lastPointerPosition ?? {
       x: window.innerWidth / 2,
       y: window.innerHeight / 2,
     };
-    const centerX = center.x - grabShiftX;
-    const centerY = center.y - grabShiftY;
+    const centerX = center.x / zoom - grabShiftX;
+    const centerY = center.y / zoom - grabShiftY;
 
     const image = new ImageShape(
       src,
@@ -126,6 +136,8 @@ export default class CanvasManager {
     document.addEventListener("pointermove", this.handleMouseMove);
     window.addEventListener("keydown", this.handleKeyDown);
     window.addEventListener("paste", this.handlePaste);
+    // passive: false, otherwise preventDefault cant stop the browser zoom
+    window.addEventListener("wheel", this.handleWheel, { passive: false });
     window.addEventListener("pagehide", this.handlePageHide);
 
     let id = setInterval(() => {
@@ -139,6 +151,7 @@ export default class CanvasManager {
     document.removeEventListener("pointermove", this.handleMouseMove);
     window.removeEventListener("keydown", this.handleKeyDown);
     window.removeEventListener("paste", this.handlePaste);
+    window.removeEventListener("wheel", this.handleWheel);
 
     this.setInvervals.forEach((id) => clearInterval(id));
   }

@@ -2,6 +2,7 @@ import type React from "react";
 import { useEffect } from "react";
 import CanvasManager from "../classes/Managers/CanvasManager";
 import { useCanvasManager } from "../store/CanvasManager.store";
+import { useGrabToolPosition } from "../store/Tools.store";
 
 type useCanvasProps = {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -44,7 +45,13 @@ export default function useCanvas(props: useCanvasProps) {
 
     let work = () => {
       ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+
+      // shapes draw in canvas units with the pan offset, zoom is applied once here
+      ctx.save();
+      const zoom = useGrabToolPosition.getState().zoom;
+      ctx.scale(zoom, zoom);
       canvasManager.draw(ctx);
+      ctx.restore();
       animationid = requestAnimationFrame(work);
     };
 

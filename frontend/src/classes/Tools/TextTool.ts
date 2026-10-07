@@ -2,12 +2,15 @@ import type React from "react";
 import type ShapeManager from "../Managers/ShapeManager";
 import type { Point } from "../Shapes/Point";
 import { Text } from "../Shapes/Text";
-import { useGrabToolPosition, useToolStyle } from "../../store/Tools.store";
+import { useToolStyle } from "../../store/Tools.store";
 import type Tool from "./Tool";
 import type { EventType } from "../Managers/ToolManager";
 import type { Tool as ToolType } from "../../store/Tools.store";
 import { getStrokeColorString } from "../../utils/Theme";
-import type { globalMouseEvent } from "../../utils/GlobalMouseEvents";
+import {
+  positionTextEditor,
+  type globalMouseEvent,
+} from "../../utils/GlobalMouseEvents";
 
 type state = "idle" | "editing";
 
@@ -32,7 +35,9 @@ export default class TextTool implements Tool {
   }
 
   updateCurrentEnclosingRectangle() {
-    let rect = this.currentInputElement.getBoundingClientRect();
+    // offset sizes ignore the zoom transform, so they're already in canvas units
+    const width = this.currentInputElement.offsetWidth;
+    const height = this.currentInputElement.offsetHeight;
     const [x, y] = this.curText!.getEnclosingRectangle();
     this.shapeManager.handleShapeUpdateEvent({
       _id: crypto.randomUUID(),
@@ -42,8 +47,8 @@ export default class TextTool implements Tool {
         toUpdate: "updateFull",
         x1: x,
         y1: y,
-        x2: x + rect.width,
-        y2: y + rect.height,
+        x2: x + width,
+        y2: y + height,
       },
     });
   }
@@ -349,9 +354,11 @@ export default class TextTool implements Tool {
 
       this.currentInputElement.style.position = "absolute";
 
-      const { x: offsetX, y: offsetY } = useGrabToolPosition.getState();
-      this.currentInputElement.style.top = `${this.curText.getEnclosingRectangle()[1] + offsetY}px`;
-      this.currentInputElement.style.left = `${this.curText.getEnclosingRectangle()[0] + offsetX}px`;
+      positionTextEditor(
+        this.currentInputElement,
+        this.curText.getEnclosingRectangle()[0],
+        this.curText.getEnclosingRectangle()[1],
+      );
 
       this.currentInputElement.style.color = getStrokeColorString(
         this.curText.strokeColor,

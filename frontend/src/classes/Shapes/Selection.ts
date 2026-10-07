@@ -13,7 +13,10 @@ export class Selection implements Shape {
   private _selectedShapes: Shape[] = [];
   private _drawSelectionArea: boolean = false;
 
-  private _enclosingRectanglePadding = 5;
+  // screen pixels, divided by zoom so selection chrome stays the same size at any zoom
+  private get _enclosingRectanglePadding() {
+    return 5 / useGrabToolPosition.getState().zoom;
+  }
   private _shapeResizeThreshold = 5;
 
   get selectionArea(): [Point, Point] {
@@ -75,8 +78,9 @@ export class Selection implements Shape {
     ex: number,
     ey: number,
   ) {
-    let toinside = 4;
-    let length = 8;
+    const zoom = useGrabToolPosition.getState().zoom;
+    let toinside = 4 / zoom;
+    let length = 8 / zoom;
 
     let sq1x = sx - length + toinside;
     let sq1y = sy - length + toinside;
@@ -91,16 +95,16 @@ export class Selection implements Shape {
     let sq4y = ey - toinside;
 
     ctx.beginPath();
-    ctx.roundRect(sq1x, sq1y, length, length, 2);
-    ctx.roundRect(sq2x, sq2y, length, length, 2);
-    ctx.roundRect(sq3x, sq3y, length, length, 2);
-    ctx.roundRect(sq4x, sq4y, length, length, 2);
+    ctx.roundRect(sq1x, sq1y, length, length, 2 / zoom);
+    ctx.roundRect(sq2x, sq2y, length, length, 2 / zoom);
+    ctx.roundRect(sq3x, sq3y, length, length, 2 / zoom);
+    ctx.roundRect(sq4x, sq4y, length, length, 2 / zoom);
 
     ctx.fill();
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    const { x: offsetX, y: offsetY } = useGrabToolPosition.getState();
+    const { x: offsetX, y: offsetY, zoom } = useGrabToolPosition.getState();
     ctx.save();
     ctx.transform(1, 0, 0, 1, offsetX, offsetY);
 
@@ -113,7 +117,7 @@ export class Selection implements Shape {
       ctx.strokeStyle = brandColor;
       ctx.fillStyle = brandColor;
 
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 1 / zoom;
 
       if (this._drawSelectionArea) {
         ctx.save();
@@ -139,7 +143,7 @@ export class Selection implements Shape {
         {
           ctx.save();
 
-          if (this._selectedShapes.length > 1) ctx.setLineDash([2, 4]);
+          if (this._selectedShapes.length > 1) ctx.setLineDash([2 / zoom, 4 / zoom]);
 
           sx -= this._enclosingRectanglePadding;
           sy -= this._enclosingRectanglePadding;
@@ -251,22 +255,22 @@ export class Selection implements Shape {
 
   isTopBoundary(x: number, y: number) {
     let [sx, sy, ex] = this.getEnclosingRectangle();
-    return x >= sx && x <= ex && Math.abs(y - sy) <= 4;
+    return x >= sx && x <= ex && Math.abs(y - sy) <= 4 / useGrabToolPosition.getState().zoom;
   }
 
   isBottomBoundary(x: number, y: number) {
     let [sx, , ex, ey] = this.getEnclosingRectangle();
-    return x >= sx && x <= ex && Math.abs(y - ey) <= 4;
+    return x >= sx && x <= ex && Math.abs(y - ey) <= 4 / useGrabToolPosition.getState().zoom;
   }
 
   isLeftBoundary(x: number, y: number) {
     let [sx, sy, , ey] = this.getEnclosingRectangle();
-    return y >= sy && y <= ey && Math.abs(x - sx) <= 4;
+    return y >= sy && y <= ey && Math.abs(x - sx) <= 4 / useGrabToolPosition.getState().zoom;
   }
 
   isRightBoundary(x: number, y: number) {
     let [, sy, ex, ey] = this.getEnclosingRectangle();
-    return y >= sy && y <= ey && Math.abs(x - ex) <= 4;
+    return y >= sy && y <= ey && Math.abs(x - ex) <= 4 / useGrabToolPosition.getState().zoom;
   }
 
   moveEnclosingRectangle() {}
