@@ -89,7 +89,7 @@ Open [http://localhost:5173](http://localhost:5173).
 
 ### Environment variables
 
-Collaboration requires the [notExcalidrawBackend](https://github.com/VishwajeetSinghParihar750/notExcalidrawBackend) WebSocket server. Create a `.env` file in the project root:
+Collaboration requires the [notExcalidrawBackend](https://github.com/bharath200415/CanvasFlow) WebSocket server. Create a `.env` file in the project root:
 
 ```env
 VITE_BACKEND_WEBSOCKET_URL=ws://localhost:3001
@@ -128,6 +128,3 @@ src/
 |-----|--------|
 | `Delete` / `Backspace` | Delete selected shapes (selection tool active) |
 
-## Acknowledgements
-
-Inspired by [Excalidraw](https://excalidraw.com). Built as a learning project to implement a collaborative canvas from the ground up.
