@@ -6,6 +6,7 @@ import { Rectangle } from "../classes/Shapes/Rectangle";
 import { RotatedRecangle } from "../classes/Shapes/RotatedRectangle";
 import { Selection } from "../classes/Shapes/Selection";
 import { Text } from "../classes/Shapes/Text";
+import { ImageShape } from "../classes/Shapes/Image";
 import { Shape } from "../classes/Shapes/Shape";
 
 const classRegistry = {
@@ -16,6 +17,7 @@ const classRegistry = {
   rotrect: RotatedRecangle,
   pen: Pen,
   text: Text,
+  image: ImageShape,
   selection: Selection,
 };
 

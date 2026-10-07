@@ -9,6 +9,7 @@ const shapeType = z.enum([
   "pen",
   "text",
   "circle",
+  "image",
 ]);
 
 const fillStyle = z.enum(["line", "crosslines", "fill"]);
@@ -120,6 +121,7 @@ const addShapePayload = z.object({
     points: z.array(z.unknown()).optional(),
     text: z.string().optional(),
     curState: TextShapeState.optional(),
+    src: z.string().optional(),
   }),
 });
 

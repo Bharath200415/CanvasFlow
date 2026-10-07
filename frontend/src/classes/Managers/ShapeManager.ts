@@ -6,6 +6,7 @@ import type {
   shapeUpdateEventId,
 } from "../../types/shapeUpdateEvents";
 import { deserializeShape } from "../../utils/Deserialization";
+import { toast } from "sonner";
 
 type shapeUpdateSubId = string;
 type shapeUpdateSubCallback = (
@@ -203,10 +204,17 @@ export default class ShapeManager {
         });
       }
     });
-    localStorage.setItem(
-      "shapeManagerLocalState",
-      JSON.stringify(eventsToSave),
-    );
+    try {
+      localStorage.setItem(
+        "shapeManagerLocalState",
+        JSON.stringify(eventsToSave),
+      );
+    } catch {
+      // quota exceeded, mostly from big images. same id so the 5s autosave doesnt stack toasts
+      toast.error("Canvas is too large to save locally, try removing some images", {
+        id: "localStorageFull",
+      });
+    }
   }
   loadStateLocalStorage() {
     let savedEvents: any[] = JSON.parse(

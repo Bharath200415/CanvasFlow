@@ -1,8 +1,8 @@
-# notExcalidraw
+# CanvasFlow
 
 A hand-drawn style whiteboard built from scratch — an [Excalidraw](https://excalidraw.com)-inspired drawing app with real-time collaboration.
 
-**Live demo:** [not-excalidraw.vercel.app](https://not-excalidraw.vercel.app)
+**Live demo:** [canvasflow.bharathships.me](https://canvasflow.bharathships.me/)
 
 ## Features
 
@@ -34,7 +34,7 @@ Additional UX: **tool lock** keeps the active tool selected after each draw acti
 ### Collaboration
 
 - Create a room and share a link (`/?roomId=...`)
-- Real-time shape sync over WebSockets via [notExcalidrawBackend](https://github.com/VishwajeetSinghParihar750/notExcalidrawBackend)
+- Real-time shape sync over WebSockets via [CanvasFlowBackend](https://github.com/bharath200415/CanvasFlow)
 - Live cursor presence for other participants
 - Event-sourced updates with conflict resolution
 
@@ -79,8 +79,8 @@ Every shape change is recorded as a `shapeUpdateEvent`. During collaboration, ev
 ### Install and run
 
 ```bash
-git clone https://github.com/VishwajeetSinghParihar750/notExcalidraw.git
-cd notExcalidraw
+git clone https://github.com/bharath200415/CanvasFlow.git
+cd frontend
 npm install
 npm run dev
 ```
@@ -89,7 +89,7 @@ Open [http://localhost:5173](http://localhost:5173).
 
 ### Environment variables
 
-Collaboration requires the [notExcalidrawBackend](https://github.com/bharath200415/CanvasFlow) WebSocket server. Create a `.env` file in the project root:
+Collaboration requires the [CanvasFlowBackend](https://github.com/bharath200415/CanvasFlow) WebSocket server. Create a `.env` file in the project root:
 
 ```env
 VITE_BACKEND_WEBSOCKET_URL=ws://localhost:3001

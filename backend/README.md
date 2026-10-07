@@ -1,8 +1,8 @@
-# notExcalidrawBackend
+# CanvasFlow Backend
 
 WebSocket backend for [CanvasFlow](https://github.com/bharath200415/CanvasFlow) — handles real-time collaboration rooms, shape event sync, and live cursor presence.
 
-**Frontend:** [CanvasFlow](https://github.com/bharath200415/CanvasFlow) · **Live demo:** [CanvasFlow](https://not-excalidraw.vercel.app)
+**Frontend:** [CanvasFlow](https://github.com/bharath200415/CanvasFlow) · **Live demo:** [CanvasFlow](https://canvasflow.bharathships.me/)
 
 ## What it does
 
@@ -31,8 +31,8 @@ WebSocket backend for [CanvasFlow](https://github.com/bharath200415/CanvasFlow) 
 ### Install and run
 
 ```bash
-git clone https://github.com/VishwajeetSinghParihar750/notExcalidrawBackend.git
-cd notExcalidrawBackend
+git clone https://github.com/VishwajeetSinghParihar750/CanvasFlow.git
+cd CanvasFlow/backend
 npm install
 npm run dev
 ```
@@ -47,7 +47,7 @@ The server listens on port **3001** by default.
 
 ### Connect the frontend
 
-In the [notExcalidraw](https://github.com/VishwajeetSinghParihar750/notExcalidraw) repo, set:
+In the [CanvasFlow](https://github.com/bharath200415/CanvasFlow) repo, set:
 
 ```env
 VITE_BACKEND_WEBSOCKET_URL=ws://localhost:3001

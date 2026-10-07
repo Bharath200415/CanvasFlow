@@ -10,6 +10,7 @@ export type ShapeType =
   | "pen"
   | "text"
   | "circle"
+  | "image"
   | "selection";
 
 export abstract class Shape {

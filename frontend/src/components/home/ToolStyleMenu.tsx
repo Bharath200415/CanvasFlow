@@ -710,6 +710,13 @@ export default function ToolStyleMenu() {
     selectedTool,
     selectedShapes,
     ["circle", "rect", "rotrect", "line", "pen", "arrow", "text"],
+    ["circle", "rect", "rotrect", "line", "pen", "arrow", "text", "image"],
+  );
+
+  let torenderStroke = shouldRender(
+    selectedTool,
+    selectedShapes,
+    ["circle", "rect", "rotrect", "line", "pen", "arrow", "text"],
     ["circle", "rect", "rotrect", "line", "pen", "arrow", "text"],
   );
 
@@ -784,33 +791,35 @@ export default function ToolStyleMenu() {
       {torender && (
         <div className="bg-bg overflow-hidden rounded-lg shadow-lg">
           <div className="max-h-[80dvh] overflow-y-auto flex flex-col gap-4 text-xs  p-5  bg-surface">
-            <div className="">
-              <div>Stroke</div>
-              <div className="flex gap-1 mt-2">
-                {(currentTheme == "dark"
-                  ? darkThemeStrokeColors
-                  : lightThemeStrokeColors
-                ).map((color, ind) => {
-                  return (
-                    <div
-                      className={
-                        stylesState.strokeColor == ind
-                          ? " rounded-sm border-fg border p-px cursor-pointer"
-                          : " rounded-sm p-px cursor-pointer"
-                      }
-                      onClick={() => {
-                        stylesState.setStrokeColor(ind as strokeColor);
-                      }}
-                    >
+            {torenderStroke && (
+              <div className="">
+                <div>Stroke</div>
+                <div className="flex gap-1 mt-2">
+                  {(currentTheme == "dark"
+                    ? darkThemeStrokeColors
+                    : lightThemeStrokeColors
+                  ).map((color, ind) => {
+                    return (
                       <div
-                        className={`w-6 h-6 rounded-sm `}
-                        style={{ backgroundColor: color }}
-                      ></div>
-                    </div>
-                  );
-                })}
+                        className={
+                          stylesState.strokeColor == ind
+                            ? " rounded-sm border-fg border p-px cursor-pointer"
+                            : " rounded-sm p-px cursor-pointer"
+                        }
+                        onClick={() => {
+                          stylesState.setStrokeColor(ind as strokeColor);
+                        }}
+                      >
+                        <div
+                          className={`w-6 h-6 rounded-sm `}
+                          style={{ backgroundColor: color }}
+                        ></div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
             {torenderBackground && (
               <div className="">
                 <div>Background</div>

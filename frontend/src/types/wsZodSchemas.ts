@@ -91,6 +91,7 @@ const shapeType = z.enum([
   "pen",
   "text",
   "circle",
+  "image",
 ]);
 
 const addShapePayload = z.object({
@@ -120,6 +121,7 @@ const addShapePayload = z.object({
     points: z.array(z.unknown()).optional(),
     text: z.string().optional(),
     curState: TextShapeState.optional(),
+    src: z.string().optional(),
   }),
 });
 
