@@ -247,8 +247,9 @@ export class Arrow implements Shape {
       let x1 = point.x;
       let y1 = point.y;
 
-      x1 = nsx + ((x1 - sx) * (nex - nsx)) / (ex - sx);
-      y1 = nsy + ((y1 - sy) * (ney - nsy)) / (ey - sy);
+      // a perfectly straight stroke has 0 width / height, translate that axis instead of dividing by 0
+      x1 = ex == sx ? nsx + (x1 - sx) : nsx + ((x1 - sx) * (nex - nsx)) / (ex - sx);
+      y1 = ey == sy ? nsy + (y1 - sy) : nsy + ((y1 - sy) * (ney - nsy)) / (ey - sy);
 
       point.x = x1;
       point.y = y1;

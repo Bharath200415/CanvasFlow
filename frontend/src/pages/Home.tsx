@@ -11,6 +11,7 @@ import { useNavigate } from "react-router";
 import { Toaster } from "sonner";
 import { useGrabToolPosition } from "../store/Tools.store";
 import { zoomAt } from "../utils/Zoom";
+import { useHistory } from "../store/History.store";
 
 type themeInfo = { name: theme; element: ReactElement };
 let themeInfoList: themeInfo[] = [
@@ -121,6 +122,8 @@ export default function Home() {
   };
 
   const zoom = useGrabToolPosition((state) => state.zoom);
+  const canUndo = useHistory((state) => state.canUndo);
+  const canRedo = useHistory((state) => state.canRedo);
   const handleResetZoom = () => {
     zoomAt(window.innerWidth / 2, window.innerHeight / 2, 1);
   };
@@ -204,13 +207,54 @@ export default function Home() {
           <ToolStyleMenu />
         </div>
 
-        <button
-          className="absolute left-5 bottom-5 max-sm:bottom-20 px-3 h-10 rounded-lg bg-surface hover:bg-brand text-fg text-sm font-semibold cursor-pointer shadow-lg tabular-nums"
-          onClick={handleResetZoom}
-          title="Reset zoom"
-        >
-          {Math.round(zoom * 100)}%
-        </button>
+        <div className="absolute left-5 bottom-5 max-sm:bottom-20 flex gap-2">
+          <button
+            className="px-3 h-10 rounded-lg bg-surface hover:bg-brand text-fg text-sm font-semibold cursor-pointer shadow-lg tabular-nums"
+            onClick={handleResetZoom}
+            title="Reset zoom"
+          >
+            {Math.round(zoom * 100)}%
+          </button>
+
+          <div className="flex rounded-lg bg-surface shadow-lg overflow-hidden">
+            <button
+              className="p-2.5 w-10 h-10 text-fg hover:bg-brand cursor-pointer disabled:opacity-40 disabled:cursor-default disabled:hover:bg-transparent"
+              onClick={() => canvasManager?.undo()}
+              disabled={!canUndo}
+              title="Undo (Ctrl+Z)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 14 4 9l5-5" />
+                <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
+              </svg>
+            </button>
+            <button
+              className="p-2.5 w-10 h-10 text-fg hover:bg-brand cursor-pointer disabled:opacity-40 disabled:cursor-default disabled:hover:bg-transparent"
+              onClick={() => canvasManager?.redo()}
+              disabled={!canRedo}
+              title="Redo (Ctrl+Shift+Z)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m15 14 5-5-5-5" />
+                <path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13" />
+              </svg>
+            </button>
+          </div>
+        </div>
         <div className="fixed inset-0 -z-2" ref={editableTextContainer}>
           <Canvas editableTextContainer={editableTextContainer} />
         </div>

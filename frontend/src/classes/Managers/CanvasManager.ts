@@ -2,6 +2,7 @@ import { toast } from "sonner";
 import Collab from "../feature/Collab/Collab";
 import ShapeManager from "./ShapeManager";
 import ToolManager from "./ToolManager";
+import HistoryManager from "./HistoryManager";
 import { ImageShape } from "../Shapes/Image";
 import type { Point } from "../Shapes/Point";
 import { useGrabToolPosition, useTool } from "../../store/Tools.store";
@@ -12,9 +13,21 @@ import {
 } from "../../utils/ImagePaste";
 import { zoomFromWheel } from "../../utils/Zoom";
 
+// text boxes keep their native paste / undo
+function isTypingTarget(target: EventTarget | null) {
+  const element = target as HTMLElement | null;
+  return (
+    !!element &&
+    (element.tagName == "TEXTAREA" ||
+      element.tagName == "INPUT" ||
+      element.isContentEditable)
+  );
+}
+
 export default class CanvasManager {
   private shapeManager: ShapeManager = new ShapeManager();
   private toolManager: ToolManager;
+  private historyManager: HistoryManager;
   private collab: Collab | null = null;
 
   private saveShapeManagerStateLocalStorage: boolean = false;
@@ -23,12 +36,17 @@ export default class CanvasManager {
   private lastPointerPosition: Point | null = null; // screen coords, for placing pasted images
 
   private handleMouseDown = (e: MouseEvent) => {
+    this.historyManager.onPointerDown(); // before the tools, so the gesture starts a fresh entry
     this.toolManager.onMouseDown(e);
     this.collab?.onMouseDown();
   };
   private handleMouseup = (e: MouseEvent) => {
     this.toolManager.onMouseUp(e);
     this.collab?.onMouseUp();
+    this.historyManager.onPointerUp();
+  };
+  private handlePointerCancel = () => {
+    this.historyManager.onPointerUp();
   };
   private handleMouseMove = (e: MouseEvent) => {
     this.lastPointerPosition = { x: e.clientX, y: e.clientY };
@@ -36,8 +54,25 @@ export default class CanvasManager {
     this.collab?.onMouseMove(e);
   };
   private handleKeyDown = (e: KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && !isTypingTarget(e.target)) {
+      const key = e.key.toLowerCase();
+      if (key == "z" || key == "y") {
+        e.preventDefault();
+        if (key == "y" || e.shiftKey) this.redo();
+        else this.undo();
+        return;
+      }
+    }
     this.toolManager.onKeyPress(e);
   };
+
+  undo() {
+    this.historyManager.undo();
+  }
+
+  redo() {
+    this.historyManager.redo();
+  }
 
   // ctrl + wheel (and trackpad pinch, which browsers report as ctrl + wheel)
   // zooms the canvas instead of the whole page
@@ -48,15 +83,7 @@ export default class CanvasManager {
   };
 
   private handlePaste = (e: ClipboardEvent) => {
-    // text boxes handle their own paste
-    const target = e.target as HTMLElement | null;
-    if (
-      target &&
-      (target.tagName == "TEXTAREA" ||
-        target.tagName == "INPUT" ||
-        target.isContentEditable)
-    )
-      return;
+    if (isTypingTarget(e.target)) return;
 
     const file = getImageFileFromClipboard(e);
     if (!file) return;
@@ -134,6 +161,7 @@ export default class CanvasManager {
     document.addEventListener("pointerdown", this.handleMouseDown);
     document.addEventListener("pointerup", this.handleMouseup);
     document.addEventListener("pointermove", this.handleMouseMove);
+    document.addEventListener("pointercancel", this.handlePointerCancel);
     window.addEventListener("keydown", this.handleKeyDown);
     window.addEventListener("paste", this.handlePaste);
     // passive: false, otherwise preventDefault cant stop the browser zoom
@@ -149,6 +177,7 @@ export default class CanvasManager {
     document.removeEventListener("pointerdown", this.handleMouseDown);
     document.removeEventListener("pointerup", this.handleMouseup);
     document.removeEventListener("pointermove", this.handleMouseMove);
+    document.removeEventListener("pointercancel", this.handlePointerCancel);
     window.removeEventListener("keydown", this.handleKeyDown);
     window.removeEventListener("paste", this.handlePaste);
     window.removeEventListener("wheel", this.handleWheel);
@@ -182,6 +211,7 @@ export default class CanvasManager {
       canvasRef,
       editableTextContainerRef,
     );
+    this.historyManager = new HistoryManager(this.shapeManager);
 
     this.setupEventListeners();
 
@@ -200,6 +230,7 @@ export default class CanvasManager {
     this.removeEventListeners();
 
     this.collab?.destructor();
+    this.historyManager.destructor();
     this.toolManager.destructor();
     this.shapeManager.destructor();
   }

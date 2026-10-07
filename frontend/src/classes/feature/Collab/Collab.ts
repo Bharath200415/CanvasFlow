@@ -120,7 +120,7 @@ export default class Collab {
             this.shapeManager.shapeUpdateEventsInverse[lastEvent!._id];
 
           this.eventsToIgnore.add(inverseEvent._id);
-          this.shapeManager.handleShapeUpdateEvent(inverseEvent);
+          this.shapeManager.handleShapeUpdateEvent(inverseEvent, "external");
         }
 
         this.addShapeEvents.pop();
@@ -135,7 +135,7 @@ export default class Collab {
           this.shapeManager.shapeUpdateEventsInverse[lastEvent!._id];
 
         this.eventsToIgnore.add(inverseEvent._id);
-        this.shapeManager.handleShapeUpdateEvent(inverseEvent);
+        this.shapeManager.handleShapeUpdateEvent(inverseEvent, "external");
       }
     }
   }
@@ -155,10 +155,13 @@ export default class Collab {
       let newShape = deserializeShape(event.payload.shape);
 
       this.eventsToIgnore.add(event._id);
-      this.shapeManager.handleShapeUpdateEvent({
-        ...event,
-        payload: { shape: newShape! },
-      });
+      this.shapeManager.handleShapeUpdateEvent(
+        {
+          ...event,
+          payload: { shape: newShape! },
+        },
+        "external",
+      );
 
       let toSaveEvent = {
         ...event,
@@ -171,7 +174,7 @@ export default class Collab {
       this.perShapeEvents[event.shapeId] = [toSaveEvent];
     } else {
       this.eventsToIgnore.add(event._id);
-      this.shapeManager.handleShapeUpdateEvent(event as any);
+      this.shapeManager.handleShapeUpdateEvent(event as any, "external");
 
       this.perShapeEvents[event.shapeId].push(event as any);
     }
@@ -292,10 +295,13 @@ export default class Collab {
         let newShape = deserializeShape(ev.payload.shape);
 
         this.eventsToIgnore.add(ev._id);
-        this.shapeManager.handleShapeUpdateEvent({
-          ...ev,
-          payload: { shape: newShape! },
-        });
+        this.shapeManager.handleShapeUpdateEvent(
+          {
+            ...ev,
+            payload: { shape: newShape! },
+          },
+          "external",
+        );
 
         let toSaveEvent = {
           ...ev,
@@ -308,7 +314,7 @@ export default class Collab {
         this.perShapeEvents[ev.shapeId] = [toSaveEvent];
       } else {
         this.eventsToIgnore.add(ev._id);
-        this.shapeManager.handleShapeUpdateEvent(ev as any);
+        this.shapeManager.handleShapeUpdateEvent(ev as any, "external");
 
         this.perShapeEvents[ev.shapeId].push(ev as any);
       }

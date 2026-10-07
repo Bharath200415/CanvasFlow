@@ -9,9 +9,14 @@ import { deserializeShape } from "../../utils/Deserialization";
 import { toast } from "sonner";
 
 type shapeUpdateSubId = string;
+
+// local: this user's actions, external: collab peers / restored state, history: undo / redo
+export type eventSource = "local" | "external" | "history";
+
 type shapeUpdateSubCallback = (
   shapeType: ShapeType,
   event: shapeUpdateEvent,
+  source: eventSource,
 ) => void;
 type subsInfo = shapeUpdateSubCallback[];
 type subsEventMapping = Partial<Record<"all" | eventType, subsInfo>>;
@@ -98,20 +103,24 @@ export default class ShapeManager {
       }
     }
   }
-  passEventToSubscribers(shapeType: ShapeType, op: shapeUpdateEvent) {
+  passEventToSubscribers(
+    shapeType: ShapeType,
+    op: shapeUpdateEvent,
+    source: eventSource,
+  ) {
     this.shapeUpdateEventSubscriptions?.["all"]?.["all"]?.forEach((cb) =>
-      cb(shapeType, op),
+      cb(shapeType, op, source),
     );
     if (op.eventType != "addShape") {
       this.shapeUpdateEventSubscriptions?.[op.shapeId]?.["all"]?.forEach((cb) =>
-        cb(shapeType, op),
+        cb(shapeType, op, source),
       );
       this.shapeUpdateEventSubscriptions?.[op.shapeId]?.[op.eventType]?.forEach(
-        (cb) => cb(shapeType, op),
+        (cb) => cb(shapeType, op, source),
       );
     }
   }
-  handleShapeUpdateEvent(op: shapeUpdateEvent) {
+  handleShapeUpdateEvent(op: shapeUpdateEvent, source: eventSource = "local") {
     let shapetype = this.shapes[op.shapeId]?.shapeType;
     switch (op.eventType) {
       case "addShape":
@@ -141,12 +150,25 @@ export default class ShapeManager {
           let [x1, y1, x2, y2] =
             this.shapes[op.shapeId].getEnclosingRectangle();
 
-          this.shapeUpdateEventsInverse[op._id] = {
-            _id: crypto.randomUUID(),
-            eventType: "updateEnclosingRectangle",
-            shapeId: op.shapeId,
-            payload: { toUpdate: "updateFull", x1, y1, x2, y2 },
-          };
+          // a move is undone exactly by moving back, no rescaling involved
+          this.shapeUpdateEventsInverse[op._id] =
+            op.payload.toUpdate == "moveFull"
+              ? {
+                  _id: crypto.randomUUID(),
+                  eventType: "updateEnclosingRectangle",
+                  shapeId: op.shapeId,
+                  payload: {
+                    toUpdate: "moveFull",
+                    delX: -(op.payload.delX ?? 0),
+                    delY: -(op.payload.delY ?? 0),
+                  },
+                }
+              : {
+                  _id: crypto.randomUUID(),
+                  eventType: "updateEnclosingRectangle",
+                  shapeId: op.shapeId,
+                  payload: { toUpdate: "updateFull", x1, y1, x2, y2 },
+                };
           this.shapes[op.shapeId].applyUpdateEvent(op);
         }
         break;
@@ -158,10 +180,15 @@ export default class ShapeManager {
             eventType: "updateProperty",
             shapeId: op.shapeId,
             payload: Object.keys(op.payload).reduce((prevVal, key) => {
-              return {
-                key: curShape[key as keyof typeof curShape],
-                ...prevVal,
-              };
+              let curVal: unknown = curShape[key as keyof typeof curShape];
+              if (curVal === undefined) return prevVal;
+
+              // snapshot, tools mutate things like the points array in place.
+              // selection holds shape instances which cant be cloned (and are never undone)
+              if (curShape.shapeType != "selection")
+                curVal = structuredClone(curVal);
+
+              return { ...prevVal, [key]: curVal };
             }, {}),
           };
 
@@ -175,7 +202,7 @@ export default class ShapeManager {
     if (!shapetype) shapetype = this.shapes[op.shapeId]?.shapeType;
 
     this.shapeUpdateEvents.push([op, shapetype]);
-    this.passEventToSubscribers(shapetype, op);
+    this.passEventToSubscribers(shapetype, op, source);
   }
   destructor() {}
 
@@ -223,12 +250,15 @@ export default class ShapeManager {
 
     savedEvents.forEach((ev) => {
       let newshape = deserializeShape(ev.payload.shape!);
-      this.handleShapeUpdateEvent({
-        _id: crypto.randomUUID(),
-        eventType: "addShape",
-        shapeId: newshape!.shapeId,
-        payload: { shape: newshape! },
-      });
+      this.handleShapeUpdateEvent(
+        {
+          _id: crypto.randomUUID(),
+          eventType: "addShape",
+          shapeId: newshape!.shapeId,
+          payload: { shape: newshape! },
+        },
+        "external",
+      );
     });
   }
 }
