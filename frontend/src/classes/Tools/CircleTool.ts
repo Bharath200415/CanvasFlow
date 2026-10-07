@@ -1,0 +1,117 @@
+import { Circle } from "../Shapes/Circle";
+import type ShapeManager from "../Managers/ShapeManager";
+import type Tool from "./Tool";
+import type { Tool as ToolType } from "../../store/Tools.store";
+import type { EventType } from "../Managers/ToolManager";
+import type { globalMouseEvent } from "../../utils/GlobalMouseEvents";
+
+type state = "idle" | "drawing";
+
+export default class CircleTool implements Tool {
+  toolType: ToolType = "circle";
+
+  shapeManager: ShapeManager;
+  curState: state = "idle";
+  currentCircle: Circle | null = null;
+  currentCircleDeleteSubscriptionId: string | null = null;
+
+  emit: (tool: ToolType, event: EventType) => void;
+
+  reset(): void {
+    this.curState = "idle";
+    this.currentCircle = null;
+
+    document.body.style.cursor = "default";
+  }
+
+  onSwitchTool(): void {}
+
+  constructor(
+    shapeManager: ShapeManager,
+    emit: (tool: ToolType, event: EventType) => void,
+  ) {
+    this.shapeManager = shapeManager;
+    this.emit = emit;
+  }
+
+  destructor(): void {
+    document.body.style.cursor = "default";
+  }
+
+  handleCurrentCircleDeleted() {
+    if (this.curState == "drawing") {
+      this.curState = "idle";
+      this.currentCircle = null;
+      this.shapeManager.unsubsribeShapeUpdateEvents(
+        this.currentCircleDeleteSubscriptionId!,
+      );
+      this.currentCircleDeleteSubscriptionId = null;
+    }
+  }
+
+  onCanvasMouseDown(e: globalMouseEvent) {
+    this.curState = "drawing";
+    this.currentCircle = new Circle(e.clientX, e.clientY, e.clientX, e.clientY);
+    this.shapeManager.handleShapeUpdateEvent({
+      _id: crypto.randomUUID(),
+      eventType: "addShape",
+      shapeId: this.currentCircle.shapeId,
+      payload: { shape: this.currentCircle },
+    });
+    this.currentCircleDeleteSubscriptionId =
+      this.shapeManager.subsribeShapeUpdateEvents(
+        this.currentCircle.shapeId,
+        "deleteShape",
+        this.handleCurrentCircleDeleted.bind(this),
+      );
+  }
+  onCanvasMouseMove(e: globalMouseEvent) {
+    document.body.style.cursor = "crosshair";
+    if (this.curState == "drawing") {
+      this.shapeManager.handleShapeUpdateEvent({
+        _id: crypto.randomUUID(),
+        eventType: "updateEnclosingRectangle",
+        shapeId: this.currentCircle!.shapeId,
+        payload: {
+          toUpdate: "updateFull",
+          x1: this.currentCircle!.startX,
+          y1: this.currentCircle!.startY,
+          x2: e.clientX,
+          y2: e.clientY,
+        },
+      });
+    }
+  }
+
+  onCanvasMouseUp() {
+    if (this.curState == "drawing") {
+      this.curState = "idle";
+
+      if (
+        Math.floor(this.currentCircle!.startX) ==
+          Math.floor(this.currentCircle!.endX) ||
+        Math.floor(this.currentCircle!.startY) ==
+          Math.floor(this.currentCircle!.endY)
+      )
+        this.shapeManager.handleShapeUpdateEvent({
+          _id: crypto.randomUUID(),
+          eventType: "deleteShape",
+          shapeId: this.currentCircle!.shapeId,
+        });
+      else this.emit(this.toolType, "taskComplete");
+
+      this.handleCurrentCircleDeleted();
+    }
+  }
+
+  onOtherMouseDown(): void {}
+
+  onOtherMouseMove(e: globalMouseEvent): void {
+    this.onCanvasMouseMove(e);
+    document.body.style.cursor = "default";
+  }
+
+  onOtherMouseUp(): void {
+    this.onCanvasMouseUp();
+  }
+}
